@@ -50,7 +50,6 @@ Files of interest
 - src/main/java/com/caseware/llm/service/PromptBuilder.java
 - src/main/java/com/caseware/llm/service/DiffService.java
 - src/main/java/com/caseware/llm/service/BedrockClient.java
-- src/main/java/com/caseware/llm/repository/InMemoryEngagementRepository.java
 - src/main/java/com/caseware/llm/controller/SummaryController.java
 
 Notes and next steps
