@@ -12,6 +12,10 @@ def lombokVersion = '1.18.28'
 
 def mockitoVersion = '5.5.0'
 
+def awsSdkVersion = '2.21.0'
+
+def testcontainersVersion = '1.19.0'
+
 repositories {
     mavenCentral()
 }
@@ -19,15 +23,25 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    implementation "software.amazon.awssdk:dynamodb:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:dynamodb-enhanced:${awsSdkVersion}"
+
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
+
+    testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
+    testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
     options.release = 17
+}
+
+test {
+    useJUnitPlatform()
 }
