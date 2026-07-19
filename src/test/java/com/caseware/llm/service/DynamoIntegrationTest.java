@@ -91,7 +91,7 @@ public class DynamoIntegrationTest {
         when(bedrockClient.generateSummary(anyString())).thenReturn("Human summary from LLM");
 
         PromptBuilder promptBuilder = new PromptBuilder();
-        SummaryService summaryService = new SummaryService(repo, diffService, promptBuilder, bedrockClient);
+        SummaryService summaryService = new SummaryService(repo, diffService, promptBuilder, bedrockClient, new SummaryCacheService(null, null));
 
         String result = summaryService.generateHumanReadableSummary("c1", "e1");
 

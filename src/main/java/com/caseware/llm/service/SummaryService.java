@@ -14,38 +14,51 @@ public class SummaryService {
     private final DiffService diffService;
     private final PromptBuilder promptBuilder;
     private final BedrockClient bedrockClient;
+    private final SummaryCacheService summaryCacheService;
 
     public SummaryService(EngagementRepository engagementRepository,
                           DiffService diffService,
                           PromptBuilder promptBuilder,
-                          BedrockClient bedrockClient) {
+                          BedrockClient bedrockClient,
+                          SummaryCacheService summaryCacheService) {
         this.engagementRepository = engagementRepository;
         this.diffService = diffService;
         this.promptBuilder = promptBuilder;
         this.bedrockClient = bedrockClient;
+        this.summaryCacheService = summaryCacheService;
     }
 
     public String generateHumanReadableSummary(String companyId, String engagementId) {
-        Optional<Engagement> opt = engagementRepository.findByCompanyIdAndEngagementId(companyId, engagementId);
-        if (opt.isEmpty()) {
+        Optional<Engagement> optionalEngagement = engagementRepository.findByCompanyIdAndEngagementId(companyId, engagementId);
+        if (optionalEngagement.isEmpty()) {
             throw new IllegalArgumentException("Engagement not found");
         }
-        Engagement e = opt.get();
+        Engagement currentEngagement = optionalEngagement.get();
 
-        // If versions are equal, nothing to do
-        if (e.getCurrentTemplateVersion().equals(e.getLatestTemplateVersion())) {
+        if (currentEngagement.getCurrentTemplateVersion().equals(currentEngagement.getLatestTemplateVersion())) {
             return "No update pending";
         }
 
-        // Compute diff between current and latest
-        DiffResult diff = diffService.computeDiff(e.getTemplateId(), e.getCurrentTemplateVersion(), e.getLatestTemplateVersion());
+        String cacheKey = buildCacheKey(companyId, engagementId, currentEngagement.getTemplateId(), currentEngagement.getCurrentTemplateVersion(), currentEngagement.getLatestTemplateVersion());
+        Optional<String> cachedSummary = summaryCacheService.getSummary(cacheKey);
+        if (cachedSummary.isPresent()) {
+            return cachedSummary.get();
+        }
 
-        // Build prompt
-        String prompt = promptBuilder.buildPrompt(e.getTemplateId(), e.getCurrentTemplateVersion(), e.getLatestTemplateVersion(), diff);
+        return summaryCacheService.executeWithLock("lock:" + cacheKey, () -> {
+            Optional<String> summaryFromCache = summaryCacheService.getSummary(cacheKey);
+            if (summaryFromCache.isPresent()) {
+                return summaryFromCache.get();
+            }
+            DiffResult diff = diffService.computeDiff(currentEngagement.getTemplateId(), currentEngagement.getCurrentTemplateVersion(), currentEngagement.getLatestTemplateVersion());
+            String prompt = promptBuilder.buildPrompt(currentEngagement.getTemplateId(), currentEngagement.getCurrentTemplateVersion(), currentEngagement.getLatestTemplateVersion(), diff);
+            String summary = bedrockClient.generateSummary(prompt);
+            summaryCacheService.saveSummary(cacheKey, summary);
+            return summary;
+        });
+    }
 
-        // Call LLM (Bedrock)
-        String summary = bedrockClient.generateSummary(prompt);
-
-        return summary;
+    private String buildCacheKey(String companyId, String engagementId, String templateId, String currentVersion, String latestVersion) {
+        return String.format("summary:%s:%s:%s:%s:%s", companyId, engagementId, templateId, currentVersion, latestVersion);
     }
 }
