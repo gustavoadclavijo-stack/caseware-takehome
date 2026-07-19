@@ -6,9 +6,13 @@ plugins {
 
 group = 'com.caseware'
 version = '0.1.0'
-sourceCompatibility = '17'
 
-def lombokVersion = '1.18.28'
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+def lombokVersion = '1.18.36'
 
 def mockitoVersion = '5.5.0'
 

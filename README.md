@@ -8,7 +8,7 @@ What is implemented
 
 - In-memory Engagement repository simulating a DynamoDB materialized view (InMemoryEngagementRepository).
 - A DiffService interface (with a local stub) that represents the external template-diff API; in unit tests this is mocked.
-- PromptBuilder: converts a DiffResult into a clear prompt for an LLM.
+- PromptBuilder: converts a DiffResult into a clear, structured prompt for an LLM using a template file stored in resources and placeholder-based substitution.
 - BedrockClient interface (with a local stub) that represents Amazon Bedrock; in unit tests this is mocked.
 - SummaryService: orchestrates the flow: load engagement -> compute diff -> build prompt -> call LLM -> return summary.
 - SummaryController: simple REST endpoint: GET /api/v1/engagements/{companyId}/{engagementId}/summary
@@ -16,13 +16,14 @@ What is implemented
 
 How to run
 
-- Build with Gradle wrapper (preferred):
-  - If the project contains the Gradle wrapper: ./gradlew clean build
-  - Run: ./gradlew bootRun
+- Build with the Gradle wrapper (preferred):
+  - ./gradlew clean build
+  - ./gradlew bootRun
 
-- Or with system Gradle:
-  - gradle clean build
-  - gradle bootRun
+- If you want to run the Docker-based integration test as well, use:
+  - RUN_DOCKER_TESTS=true ./gradlew test
+
+- Using the system Gradle installation is not recommended in this environment because it can pick up a different JVM/Gradle combination and fail unexpectedly.
 
 - Example endpoints (after start):
   - GET http://localhost:8080/api/v1/engagements/companyA/eng-1/summary -> returns generated summary (sample seeded data)
@@ -34,7 +35,7 @@ Design notes
 
 - DiffService is an abstraction over the existing template-diff API you mentioned. The service returns a DiffResult object with lists of added/modified/removed items. In unit tests we mock this component.
 
-- PromptBuilder is intentionally simple: it lists added, modified and removed items and then requests a concise summary for non-technical users. In production, prompts should include system instructions, examples, and safety guidance.
+- PromptBuilder now uses a prompt template externalized in resources with sections such as context, changes, instructions, and output. It replaces placeholders with the supplied template metadata and diff content to produce a more professional, audit-friendly LLM prompt.
 
 - BedrockClient is an abstraction for the LLM provider. Tests mock this to avoid external calls.
 

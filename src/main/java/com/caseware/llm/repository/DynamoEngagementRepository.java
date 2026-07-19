@@ -7,7 +7,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.services.dynamodb.model.BillingMode;
 
 import java.util.Optional;
 
@@ -25,7 +24,7 @@ public class DynamoEngagementRepository implements EngagementRepository {
 
         // Ensure table exists (for local/dev). In production use migrations or infra tooling.
         try {
-            table.createTable(CreateTableEnhancedRequest.builder().billingMode(BillingMode.PAY_PER_REQUEST).build());
+            table.createTable(CreateTableEnhancedRequest.builder().build());
         } catch (Exception ex) {
             // Table may already exist; ignore
         }

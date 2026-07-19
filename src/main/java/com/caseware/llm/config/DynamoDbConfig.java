@@ -8,9 +8,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 
 import java.net.URI;
@@ -26,7 +24,7 @@ public class DynamoDbConfig {
 
     @Bean
     public DynamoDbClient dynamoDbClient() {
-        DynamoDbClient.Builder builder = DynamoDbClient.builder()
+        DynamoDbClientBuilder builder = DynamoDbClient.builder()
                 .region(Region.of(region))
                 // using static creds for local use; in AWS the default provider chain will be used
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));

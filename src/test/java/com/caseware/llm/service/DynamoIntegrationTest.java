@@ -5,6 +5,7 @@ import com.caseware.llm.model.Engagement;
 import com.caseware.llm.repository.EngagementRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.testcontainers.containers.GenericContainer;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.*;
  * This test requires Docker. It's skipped if the system property 'skipDockerTests' is set to true.
  */
 @DisabledIfSystemProperty(named = "skipDockerTests", matches = "true")
+@EnabledIfEnvironmentVariable(named = "RUN_DOCKER_TESTS", matches = "true")
 public class DynamoIntegrationTest {
 
     private GenericContainer<?> dynamo;
